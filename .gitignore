@@ -1,0 +1,12 @@
+__pycache__/
+*.pyc
+*.pyo
+data/security_events.db
+logs/security.log
+quarantine/*.txt
+.vscode/
+.idea/
+*.egg-info/
+dist/
+build/
+.env

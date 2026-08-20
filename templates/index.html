@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SMS Security Gateway</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>SMS Security Gateway</h1>
+            <p class="subtitle">AI-Powered Threat Detection & Alerting System</p>
+            <nav>
+                <a href="/" class="active">Analyze</a>
+                <a href="/dashboard">Dashboard</a>
+            </nav>
+        </header>
+
+        <main>
+            <div class="card analyze-card">
+                <h2>Analyze Message</h2>
+                <form id="analyzeForm">
+                    <div class="form-group">
+                        <label for="sender">Sender</label>
+                        <input type="text" id="sender" placeholder="+919999999999" value="+910000000000">
+                    </div>
+                    <div class="form-group">
+                        <label for="message">Message</label>
+                        <textarea id="message" rows="4" placeholder="Enter SMS message to analyze...">Congratulations! You won $1000! Click http://scam.win to claim your prize NOW!</textarea>
+                    </div>
+                    <button type="submit" id="analyzeBtn">Analyze Message</button>
+                </form>
+            </div>
+
+            <div id="resultSection" class="card result-card" style="display:none;">
+                <h2>Analysis Result</h2>
+                <div id="resultContent"></div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        document.getElementById("analyzeForm").addEventListener("submit", async function(e) {
+            e.preventDefault();
+            const btn = document.getElementById("analyzeBtn");
+            btn.textContent = "Analyzing...";
+            btn.disabled = true;
+
+            const sender = document.getElementById("sender").value;
+            const message = document.getElementById("message").value;
+
+            try {
+                const response = await fetch("/api/analyze", {
+                    method: "POST",
+                    headers: {"Content-Type": "application/json"},
+                    body: JSON.stringify({sender, message})
+                });
+                const data = await response.json();
+                showResult(data);
+            } catch(err) {
+                alert("Error: " + err.message);
+            }
+
+            btn.textContent = "Analyze Message";
+            btn.disabled = false;
+        });
+
+        function showResult(data) {
+            const section = document.getElementById("resultSection");
+            const content = document.getElementById("resultContent");
+
+            const severityColors = {
+                "LOW": "#22c55e",
+                "MEDIUM": "#f59e0b",
+                "HIGH": "#f97316",
+                "CRITICAL": "#ef4444"
+            };
+
+            const color = severityColors[data.severity] || "#6b7280";
+
+            content.innerHTML = `
+                <div class="result-grid">
+                    <div class="result-item">
+                        <span class="result-label">ML Classification</span>
+                        <span class="result-value" style="color:${data.label === 'SPAM' ? '#ef4444' : '#22c55e'}">${data.label}</span>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-label">Confidence</span>
+                        <span class="result-value">${(data.confidence * 100).toFixed(1)}%</span>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-label">Risk Score</span>
+                        <span class="result-value" style="color:${color}">${data.risk_score}/100</span>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-label">Severity</span>
+                        <span class="severity-badge" style="background:${color}">${data.severity}</span>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-label">Action</span>
+                        <span class="action-badge">${data.action}</span>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-label">Event ID</span>
+                        <span class="result-value">#${data.event_id}</span>
+                    </div>
+                </div>
+                <div class="reasons-section">
+                    <h3>Threat Assessment</h3>
+                    <ul class="reasons-list">
+                        ${data.reasons.map(r => `<li>${r}</li>`).join("")}
+                    </ul>
+                </div>
+                ${data.urls_found.length > 0 ? `
+                <div class="urls-section">
+                    <h3>URLs Detected</h3>
+                    <ul class="urls-list">
+                        ${data.urls_found.map(u => `<li>${u}</li>`).join("")}
+                    </ul>
+                </div>
+                ` : ""}
+                <div class="result-links">
+                    <a href="/event/${data.event_id}">View Full Event</a>
+                    <a href="/dashboard">View Dashboard</a>
+                </div>
+            `;
+            section.style.display = "block";
+        }
+    </script>
+</body>
+</html>

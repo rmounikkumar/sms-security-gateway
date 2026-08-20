@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Event #{{ event.id }} - SMS Security</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Event Detail #{{ event.id }}</h1>
+            <nav>
+                <a href="/">Analyze</a>
+                <a href="/dashboard">Dashboard</a>
+            </nav>
+        </header>
+
+        <main>
+            <div class="card">
+                <h2>Message Info</h2>
+                <div class="detail-grid">
+                    <div class="detail-item">
+                        <span class="detail-label">Event ID</span>
+                        <span class="detail-value">#{{ event.id }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Timestamp</span>
+                        <span class="detail-value">{{ event.timestamp }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Sender</span>
+                        <span class="detail-value">{{ event.sender }}</span>
+                    </div>
+                </div>
+                <div class="message-box">
+                    <span class="detail-label">Message Content</span>
+                    <p>{{ event.message }}</p>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Threat Assessment</h2>
+                <div class="detail-grid">
+                    <div class="detail-item">
+                        <span class="detail-label">ML Classification</span>
+                        <span class="detail-value {% if event.ml_label == 'SPAM' %}text-red{% else %}text-green{% endif %}">{{ event.ml_label }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Confidence</span>
+                        <span class="detail-value">{{ "%.1f"|format(event.ml_confidence * 100) }}%</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Risk Score</span>
+                        <span class="detail-value sev-{{ event.severity|lower }}">{{ event.risk_score }}/100</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Severity</span>
+                        <span class="severity-badge sev-{{ event.severity|lower }}">{{ event.severity }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Action</span>
+                        <span class="action-badge act-{{ event.action|lower }}">{{ event.action }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Detection Reasons</h2>
+                <ul class="reasons-list">
+                    {% for reason in event.reasons.split('\n') if event.reasons %}
+                    <li>{{ reason }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+
+            {% if event.urls %}
+            <div class="card">
+                <h2>URLs Detected</h2>
+                <ul class="urls-list">
+                    {% for url in event.urls.split('\n') if event.urls %}
+                    <li>{{ url }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+
+            <div class="back-link">
+                <a href="/dashboard">&larr; Back to Dashboard</a>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

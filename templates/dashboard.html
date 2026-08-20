@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SMS Security Dashboard</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>SMS Security Monitor</h1>
+            <nav>
+                <a href="/">Analyze</a>
+                <a href="/dashboard" class="active">Dashboard</a>
+            </nav>
+        </header>
+
+        <main>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <span class="stat-number">{{ stats.total }}</span>
+                    <span class="stat-label">Messages Analyzed</span>
+                </div>
+                <div class="stat-card spam">
+                    <span class="stat-number">{{ stats.spam_detected }}</span>
+                    <span class="stat-label">Spam Detected</span>
+                </div>
+                <div class="stat-card quarantine">
+                    <span class="stat-number">{{ stats.quarantined }}</span>
+                    <span class="stat-label">Quarantined</span>
+                </div>
+                <div class="stat-card high">
+                    <span class="stat-number">{{ stats.high_risk }}</span>
+                    <span class="stat-label">High Risk</span>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Risk Distribution</h2>
+                <div class="severity-bars">
+                    {% for sev in ["LOW", "MEDIUM", "HIGH", "CRITICAL"] %}
+                    {% set count = stats.severity_distribution.get(sev, 0) %}
+                    {% set pct = (count / stats.total * 100) if stats.total > 0 else 0 %}
+                    <div class="bar-row">
+                        <span class="bar-label">{{ sev }}</span>
+                        <div class="bar-track">
+                            <div class="bar-fill bar-{{ sev|lower }}" style="width: {{ pct }}%"></div>
+                        </div>
+                        <span class="bar-count">{{ count }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Recent Security Events</h2>
+                <table class="events-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Time</th>
+                            <th>Sender</th>
+                            <th>Message</th>
+                            <th>ML</th>
+                            <th>Score</th>
+                            <th>Severity</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for event in events %}
+                        <tr>
+                            <td><a href="/event/{{ event.id }}">{{ event.id }}</a></td>
+                            <td>{{ event.timestamp }}</td>
+                            <td>{{ event.sender }}</td>
+                            <td class="msg-cell">{{ event.message[:40] }}{% if event.message|length > 40 %}...{% endif %}</td>
+                            <td class="{% if event.ml_label == 'SPAM' %}text-red{% else %}text-green{% endif %}">{{ event.ml_label }}</td>
+                            <td>{{ event.risk_score }}</td>
+                            <td><span class="severity-badge sev-{{ event.severity|lower }}">{{ event.severity }}</span></td>
+                            <td><span class="action-badge act-{{ event.action|lower }}">{{ event.action }}</span></td>
+                        </tr>
+                        {% endfor %}
+                        {% if not events %}
+                        <tr><td colspan="8" class="empty-state">No events yet. <a href="/">Analyze a message</a> to get started.</td></tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+</body>
+</html>
