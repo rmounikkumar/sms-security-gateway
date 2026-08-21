@@ -14,6 +14,8 @@ A defensive cybersecurity platform that uses **BERT-Tiny** machine learning to i
 - [Project Structure](#project-structure)
 - [How It Works](#how-it-works)
 - [Installation](#installation)
+  - [Option A: Run on PC](#option-a-run-on-windowslinuxmac-pc)
+  - [Option B: Run Directly on Android](#option-b-run-directly-on-android-no-pc-required)
 - [Usage](#usage)
 - [API Reference](#api-reference)
 - [Risk Engine Explained](#risk-engine-explained)
@@ -222,24 +224,166 @@ Based on the total risk score:
 
 ## Installation
 
-### Prerequisites
-- Python 3.9+
-- pip
+### Option A: Run on Windows/Linux/Mac (PC)
 
-### Steps
+**Prerequisites:** Python 3.9+, pip
 
 ```bash
-# Clone or download the project
-cd sms-defense
-
-# Install dependencies
+git clone https://github.com/rmounikkumar/sms-security-gateway.git
+cd sms-security-gateway
 pip install -r requirements.txt
-
-# Run the application
 python app.py
 ```
 
-The server starts at `http://localhost:5000`.
+Open `http://localhost:5000`
+
+---
+
+### Option B: Run Directly on Android (No PC Required)
+
+Run the entire project on your Android phone using Termux. No PC needed after setup.
+
+#### Step 1: Install Termux from F-Droid
+
+1. Open your phone browser
+2. Go to **https://f-droid.org/**
+3. Download and install **F-Droid** APK
+4. Open F-Droid -> Search **Termux** -> Install
+5. Also install **Termux:API** (for SMS forwarding)
+
+> **Do NOT install Termux from Play Store** (it's outdated and broken)
+
+#### Step 2: Install Termux:API Permissions
+
+```
+Android Settings -> Apps -> Termux:API -> Permissions -> Enable SMS, Phone
+Android Settings -> Apps -> Termux:API -> Battery -> Unrestricted
+Android Settings -> Apps -> Termux -> Battery -> Unrestricted
+```
+
+#### Step 3: Setup Project in Termux
+
+Open Termux and paste this **one command** (takes 15-20 min):
+
+```bash
+pkg update -y && pkg upgrade -y && pkg install python git -y && pip install flask transformers torch && git clone https://github.com/rmounikkumar/sms-security-gateway.git && cd sms-security-gateway && mkdir -p data quarantine logs
+```
+
+#### Step 4: Download BERT-Tiny Model
+
+```bash
+cd ~/sms-security-gateway
+python -c "from transformers import pipeline; pipeline('text-classification', model='mrm8488/bert-tiny-finetuned-sms-spam-detection')"
+```
+
+#### Step 5: Start the Server
+
+```bash
+python app.py
+```
+
+You'll see:
+```
+ * Running on http://0.0.0.0:5000
+```
+
+#### Step 6: Open on Your Phone
+
+Open Chrome/Firefox on your phone:
+```
+http://localhost:5000
+```
+
+**Done!** The full project with BERT-Tiny ML model, risk engine, database, and dashboard is running on your Android phone.
+
+#### Step 7 (Optional): Forward Real SMS
+
+Create an auto-forwarder so incoming SMS are analyzed automatically:
+
+```bash
+nano ~/sms_forwarder.py
+```
+
+Paste this code:
+
+```python
+import subprocess, json, time, urllib.request, os
+
+GATEWAY = "http://localhost:5000/api/analyze"
+LAST_ID = os.path.expanduser("~/.sms_id")
+
+def get_sms():
+    try:
+        r = subprocess.run(["termux-sms-list", "-l", "1"], capture_output=True, text=True, timeout=10)
+        if r.returncode == 0 and r.stdout.strip():
+            m = json.loads(r.stdout)
+            return m[0] if m else None
+    except: pass
+    return None
+
+def main():
+    last = -1
+    try:
+        with open(LAST_ID) as f: last = int(f.read().strip())
+    except: pass
+    print("Listening for SMS...")
+    while True:
+        sms = get_sms()
+        if sms and sms.get("id", 0) > last:
+            s, b = sms.get("number", "?"), sms.get("body", "")
+            print(f"SMS from {s}: {b[:50]}")
+            try:
+                d = json.dumps({"sender": s, "message": b}).encode()
+                urllib.request.urlopen(urllib.request.Request(GATEWAY, d, {"Content-Type": "application/json"}), timeout=10)
+                print("Forwarded OK")
+            except Exception as e: print(f"Error: {e}")
+            with open(LAST_ID, "w") as f: f.write(str(sms["id"]))
+            last = sms["id"]
+        time.sleep(5)
+
+if __name__ == "__main__": main()
+```
+
+Press `Ctrl+X`, `Y`, `Enter` to save.
+
+Run it:
+```bash
+python ~/sms_forwarder.py
+```
+
+Now every incoming SMS is automatically analyzed and stored.
+
+#### Keep Running in Background
+
+```bash
+# Install tmux
+pkg install tmux -y
+
+# Start server in a session
+tmux new -s server
+python app.py
+# Press Ctrl+B, then D to detach
+
+# Start SMS forwarder in another session
+tmux new -s sms
+python ~/sms_forwarder.py
+# Press Ctrl+B, then D to detach
+
+# Reattach later
+tmux attach -t server
+tmux attach -t sms
+```
+
+#### Storage Requirements
+
+| Component | Size |
+|-----------|------|
+| Python + Termux | ~50MB |
+| PyTorch (CPU) | ~200MB |
+| Transformers | ~50MB |
+| BERT-Tiny Model | ~17MB |
+| Your project | ~50KB |
+| **Total** | **~320MB** |
 
 ---
 
