@@ -266,7 +266,7 @@ Android Settings -> Apps -> Termux -> Battery -> Unrestricted
 Open Termux and paste this **one command** (takes 15-20 min):
 
 ```bash
-pkg update -y && pkg upgrade -y && pkg install python git -y && pip install flask transformers torch && git clone https://github.com/rmounikkumar/sms-security-gateway.git && cd sms-security-gateway && mkdir -p data quarantine logs
+pkg update -y && pkg upgrade -y && pkg install python git -y && pip install flask transformers onnxruntime numpy && git clone https://github.com/rmounikkumar/sms-security-gateway.git && cd sms-security-gateway && mkdir -p data quarantine logs
 ```
 
 #### Step 4: Download BERT-Tiny Model
@@ -379,11 +379,11 @@ tmux attach -t sms
 | Component | Size |
 |-----------|------|
 | Python + Termux | ~50MB |
-| PyTorch (CPU) | ~200MB |
 | Transformers | ~50MB |
-| BERT-Tiny Model | ~17MB |
+| ONNX Runtime | ~5MB |
+| BERT-Tiny Model (ONNX) | ~18MB |
 | Your project | ~50KB |
-| **Total** | **~320MB** |
+| **Total** | **~125MB** |
 
 ---
 
