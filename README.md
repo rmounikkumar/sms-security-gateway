@@ -266,8 +266,10 @@ Android Settings -> Apps -> Termux -> Battery -> Unrestricted
 Open Termux and paste this **one command** (takes 15-20 min):
 
 ```bash
-pkg update -y && pkg upgrade -y && pkg install python git -y && pip install flask transformers onnxruntime numpy && git clone https://github.com/rmounikkumar/sms-security-gateway.git && cd sms-security-gateway && mkdir -p data quarantine logs
+pkg update -y && pkg upgrade -y && pkg install python git -y && pip install flask transformers numpy && git clone https://github.com/rmounikkumar/sms-security-gateway.git && cd sms-security-gateway && mkdir -p data quarantine logs && python app.py
 ```
+
+> On Android, the detector automatically uses a **rule-based fallback** (URL + keyword analysis). On PC with PyTorch/ONNX installed, the full **BERT-Tiny ML model** runs. The risk engine works on both.
 
 #### Step 4: Download BERT-Tiny Model
 
@@ -380,10 +382,9 @@ tmux attach -t sms
 |-----------|------|
 | Python + Termux | ~50MB |
 | Transformers | ~50MB |
-| ONNX Runtime | ~5MB |
-| BERT-Tiny Model (ONNX) | ~18MB |
+| NumPy | ~15MB |
 | Your project | ~50KB |
-| **Total** | **~125MB** |
+| **Total** | **~115MB** |
 
 ---
 
