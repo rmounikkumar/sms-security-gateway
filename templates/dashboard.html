@@ -9,7 +9,7 @@
 <body>
     <div class="container">
         <header>
-            <h1>SMS Security Monitor</h1>
+            <h1><span class="shield-icon">&#128737;</span> SMS Security Monitor</h1>
             <nav>
                 <a href="/">Analyze</a>
                 <a href="/dashboard" class="active">Dashboard</a>
@@ -18,25 +18,25 @@
 
         <main>
             <div class="stats-grid">
-                <div class="stat-card">
+                <div class="stat-card animate-in animate-in-delay-1">
                     <span class="stat-number">{{ stats.total }}</span>
                     <span class="stat-label">Messages Analyzed</span>
                 </div>
-                <div class="stat-card spam">
+                <div class="stat-card spam animate-in animate-in-delay-2">
                     <span class="stat-number">{{ stats.spam_detected }}</span>
                     <span class="stat-label">Spam Detected</span>
                 </div>
-                <div class="stat-card quarantine">
+                <div class="stat-card quarantine animate-in animate-in-delay-3">
                     <span class="stat-number">{{ stats.quarantined }}</span>
                     <span class="stat-label">Quarantined</span>
                 </div>
-                <div class="stat-card high">
+                <div class="stat-card high animate-in animate-in-delay-4">
                     <span class="stat-number">{{ stats.high_risk }}</span>
                     <span class="stat-label">High Risk</span>
                 </div>
             </div>
 
-            <div class="card">
+            <div class="card animate-in animate-in-delay-2">
                 <h2>Risk Distribution</h2>
                 <div class="severity-bars">
                     {% for sev in ["LOW", "MEDIUM", "HIGH", "CRITICAL"] %}
@@ -53,8 +53,9 @@
                 </div>
             </div>
 
-            <div class="card">
+            <div class="card animate-in animate-in-delay-3">
                 <h2>Recent Security Events</h2>
+                <div style="overflow-x:auto;">
                 <table class="events-table">
                     <thead>
                         <tr>
@@ -86,8 +87,31 @@
                         {% endif %}
                     </tbody>
                 </table>
+                </div>
             </div>
         </main>
     </div>
+
+    <script>
+        function animateCounters() {
+            document.querySelectorAll('.stat-number').forEach(el => {
+                const target = parseInt(el.textContent) || 0;
+                const duration = 800;
+                const start = 0;
+                const diff = target - start;
+                if (diff === 0) return;
+                const startTime = performance.now();
+                function step(now) {
+                    const progress = Math.min((now - startTime) / duration, 1);
+                    const eased = 1 - Math.pow(1 - progress, 3);
+                    el.textContent = Math.round(start + diff * eased);
+                    if (progress < 1) requestAnimationFrame(step);
+                }
+                el.textContent = '0';
+                requestAnimationFrame(step);
+            });
+        }
+        animateCounters();
+    </script>
 </body>
 </html>

@@ -9,7 +9,7 @@
 <body>
     <div class="container">
         <header>
-            <h1>Event Detail #{{ event.id }}</h1>
+            <h1><span class="shield-icon">&#128737;</span> Event #{{ event.id }}</h1>
             <nav>
                 <a href="/">Analyze</a>
                 <a href="/dashboard">Dashboard</a>
@@ -17,7 +17,7 @@
         </header>
 
         <main>
-            <div class="card">
+            <div class="card animate-in animate-in-delay-1">
                 <h2>Message Info</h2>
                 <div class="detail-grid">
                     <div class="detail-item">
@@ -39,7 +39,7 @@
                 </div>
             </div>
 
-            <div class="card">
+            <div class="card animate-in animate-in-delay-2">
                 <h2>Threat Assessment</h2>
                 <div class="detail-grid">
                     <div class="detail-item">
@@ -65,7 +65,7 @@
                 </div>
             </div>
 
-            <div class="card">
+            <div class="card animate-in animate-in-delay-3">
                 <h2>Detection Reasons</h2>
                 <ul class="reasons-list">
                     {% for reason in event.reasons.split('\n') if event.reasons %}
@@ -75,7 +75,7 @@
             </div>
 
             {% if event.urls %}
-            <div class="card">
+            <div class="card animate-in animate-in-delay-4">
                 <h2>URLs Detected</h2>
                 <ul class="urls-list">
                     {% for url in event.urls.split('\n') if event.urls %}
